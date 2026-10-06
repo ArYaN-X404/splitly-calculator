@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Splitly — Test Suite</title>
+  <style>
+    body {
+      background: #0B1020;
+      color: #F4F6FF;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      padding: 32px;
+      line-height: 1.6;
+    }
+    .header {
+      margin-bottom: 24px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding-bottom: 16px;
+    }
+    h1 { margin: 0 0 8px 0; color: #FFB347; font-size: 24px; }
+    .status-badge {
+      display: inline-block;
+      padding: 6px 16px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 15px;
+      margin-bottom: 20px;
+    }
+    .badge-pass { background: rgba(45, 226, 166, 0.2); color: #2DE2A6; border: 1px solid #2DE2A6; }
+    .badge-fail { background: rgba(255, 77, 109, 0.2); color: #FF4D6D; border: 1px solid #FF4D6D; }
+    .test-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-width: 800px;
+    }
+    .test-card {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      padding: 12px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .test-title { font-weight: 600; font-size: 15px; }
+    .test-detail { font-size: 13px; color: #9AA3C7; font-family: monospace; margin-top: 3px; }
+    .test-status { font-weight: 700; font-size: 14px; }
+    .status-ok { color: #2DE2A6; }
+    .status-bad { color: #FF4D6D; }
+    a { color: #FFB347; text-decoration: none; font-weight: 500; }
+    a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Splitly Test Suite</h1>
+    <p>Unit tests for calculator logic and input sanitization.</p>
+    <a href="../index.html">← Back to App</a>
+  </div>
+
+  <div id="summaryBadge" class="status-badge">Running tests...</div>
+  <div id="testOutput" class="test-list"></div>
+
+  <script src="../js/calculator.js"></script>
+  <script src="../js/validator.js"></script>
+
+  <script>
+    (function () {
+      const calc = window.Splitly && window.Splitly.calculator;
+      const val = window.Splitly && window.Splitly.validator;
+
+      const testList = document.getElementById("testOutput");
+      const summaryBadge = document.getElementById("summaryBadge");
+
+      if (!calc || !val) {
+        summaryBadge.className = "status-badge badge-fail";
+        summaryBadge.textContent = "Error loading scripts.";
+        return;
+      }
+
+      const { calculate, calculateTipAmount, calculateTotal, calculatePerPerson, formatCurrencyValue } = calc;
+      const { sanitizeDecimal, sanitizePeople, sanitizeTipPercent, MAX_BILL_LIMIT, MAX_PEOPLE_LIMIT } = val;
+
+      const results = [];
+
+      function assert(name, condition, details = "") {
+        results.push({ name, passed: Boolean(condition), details });
+      }
+
+      const r1 = calculate({ bill: 1000, tipPercent: 15, people: 4, roundUp: false });
+      assert("Test 1: Bill ₹1000, 15% Tip, 4 People", 
+        r1.tipAmount === 150 && r1.total === 1150 && r1.perPersonTotal === 287.5 && r1.perPersonTip === 37.5,
+        `Tip: ${r1.tipAmount}, Total: ${r1.total}, PerPerson: ${r1.perPersonTotal}`
+      );
+
+      const r2 = calculate({ bill: 99.99, tipPercent: 18, people: 3, roundUp: false });
+      assert("Test 2: Bill ₹99.99, 18% Tip, 3 People", 
+        r2.tipAmount === 18 && r2.total === 117.99 && r2.perPersonTotal === 39.33,
+        `Tip: ${r2.tipAmount}, Total: ${r2.total}, PerPerson: ${r2.perPersonTotal}`
+      );
+
+      const r3 = calculate({ bill: 100, tipPercent: 15, people: 3, roundUp: true });
+      assert("Test 3: Round-Up Toggle functionality",
+        r3.perPersonTotal === 39,
+        `Expected 39.00, got ${r3.perPersonTotal}`
+      );
+
+      const s1 = sanitizeDecimal("");
+      assert("Test 4: Blank bill sanitized to 0",
+        s1.numericValue === 0 && s1.cleanString === "",
+        `numericValue: ${s1.numericValue}`
+      );
+
+      const s2 = sanitizeDecimal("-500");
+      assert("Test 5: Negative bill (-500) blocked and flagged",
+        s2.numericValue === 500 && s2.error !== null,
+        `Error flagged: "${s2.error}"`
+      );
+
+      const s3 = sanitizeDecimal("100abc25");
+      assert("Test 6: Alpha characters stripped (100abc25 -> 10025)",
+        s3.numericValue === 10025,
+        `Result: ${s3.numericValue}`
+      );
+
+      const s4 = sanitizeDecimal("12.3.4");
+      assert("Test 7: Multiple decimal points kept only first (12.3.4 -> 12.34)",
+        s4.cleanString === "12.34",
+        `Result string: "${s4.cleanString}"`
+      );
+
+      const s5 = sanitizeDecimal("10.999");
+      assert("Test 8: Extra decimals truncated to 2 places (10.999 -> 10.99)",
+        s5.cleanString === "10.99",
+        `Result string: "${s5.cleanString}"`
+      );
+
+      const p1 = sanitizePeople("0");
+      assert("Test 9: Zero people clamped to min 1 with alert",
+        p1.numericValue === 1 && p1.error !== null,
+        `numericValue: ${p1.numericValue}, error: "${p1.error}"`
+      );
+
+      const p2 = sanitizePeople("2.5");
+      assert("Test 10: Decimal people (2.5) floored to whole integer",
+        p2.numericValue === 2,
+        `numericValue: ${p2.numericValue}`
+      );
+
+      const t1 = sanitizeTipPercent("150");
+      assert("Test 11: Custom tip > 100 clamped to 100%",
+        t1.numericValue === 100 && t1.error !== null,
+        `numericValue: ${t1.numericValue}, error: "${t1.error}"`
+      );
+
+      const t2 = sanitizeTipPercent("-20");
+      assert("Test 12: Negative custom tip clamped to 0%",
+        t2.numericValue === 0 && t2.error !== null,
+        `numericValue: ${t2.numericValue}`
+      );
+
+      const bHuge = sanitizeDecimal("999999999999");
+      assert("Test 13: Huge bill capped at max limit",
+        bHuge.numericValue === MAX_BILL_LIMIT,
+        `Capped at: ${bHuge.numericValue}`
+      );
+
+      const rDivZero = calculatePerPerson(100, 15, 0);
+      assert("Test 14: Calculator guards against division by zero",
+        Number.isFinite(rDivZero.perPersonTotal) && rDivZero.perPersonTotal === 100,
+        `Per person total: ${rDivZero.perPersonTotal}`
+      );
+
+      const fmt = formatCurrencyValue(NaN);
+      assert("Test 15: Formatter guards against NaN",
+        fmt === "0.00",
+        `Formatted result: "${fmt}"`
+      );
+
+      let passCount = 0;
+      testList.innerHTML = "";
+      results.forEach((res) => {
+        if (res.passed) passCount++;
+        const card = document.createElement("div");
+        card.className = "test-card";
+        card.innerHTML = `
+          <div>
+            <div class="test-title">${res.name}</div>
+            <div class="test-detail">${res.details}</div>
+          </div>
+          <div class="test-status ${res.passed ? 'status-ok' : 'status-bad'}">
+            ${res.passed ? '✓ PASSED' : '✗ FAILED'}
+          </div>
+        `;
+        testList.appendChild(card);
+      });
+
+      if (passCount === results.length) {
+        summaryBadge.className = "status-badge badge-pass";
+        summaryBadge.textContent = `All ${passCount} / ${results.length} Tests Passed`;
+      } else {
+        summaryBadge.className = "status-badge badge-fail";
+        summaryBadge.textContent = `${passCount} / ${results.length} Tests Passed`;
+      }
+    })();
+  </script>
+</body>
+</html>

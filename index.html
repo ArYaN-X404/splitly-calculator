@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Splitly — Tip & Bill Splitter</title>
+  <meta name="description" content="Calculate tip and split bills easily.">
+
+  <!-- Google Fonts: Space Grotesk & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+  <div class="ambient-glow-1" aria-hidden="true"></div>
+  <div class="ambient-glow-2" aria-hidden="true"></div>
+
+  <div class="app-container">
+    <header class="app-header">
+      <div class="brand-wrapper">
+        <div class="brand-icon-box" aria-hidden="true">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/>
+            <path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/>
+            <path d="M12 17V7"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h1>Splitly</h1>
+          <p>Tip & Bill Splitter</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <div class="currency-selector-wrapper">
+          <select id="currencySelect" class="currency-select" aria-label="Select Currency">
+            <option value="₹" selected>₹ INR</option>
+            <option value="$">$ USD</option>
+            <option value="€">€ EUR</option>
+            <option value="£">£ GBP</option>
+          </select>
+        </div>
+
+        <button id="themeToggleBtn" class="btn-icon-toggle" aria-label="Toggle dark/light theme" title="Toggle Theme">
+          <svg id="themeIcon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 3a6 6 0 0 0 9 9 9 0 1 1-9-9Z"></path>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <main class="calculator-card">
+      <section class="input-panel" aria-label="Bill & Tip Configuration">
+        <div class="form-group">
+          <div class="label-row">
+            <label for="billInput" class="field-label">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect width="20" height="14" x="2" y="5" rx="2"/>
+                <line x1="2" x2="22" y1="10" y2="10"/>
+              </svg>
+              Bill Amount
+            </label>
+          </div>
+          <div id="billContainer" class="input-field-container">
+            <span class="input-prefix dynamic-currency" aria-hidden="true">₹</span>
+            <input 
+              type="text" 
+              id="billInput" 
+              class="app-input" 
+              placeholder="0.00" 
+              inputmode="decimal"
+              autocomplete="off"
+              spellcheck="false"
+              aria-describedby="billError"
+            >
+          </div>
+          <div id="billError" class="error-message" role="alert">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            <span></span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="label-row">
+            <span class="field-label">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <line x1="19" x2="5" y1="5" y2="19"/>
+                <circle cx="6.5" cy="6.5" r="2.5"/>
+                <circle cx="17.5" cy="17.5" r="2.5"/>
+              </svg>
+              Select Tip %
+            </span>
+            <span id="tipSentiment" class="tip-sentiment-badge" aria-live="polite">
+              😊 15% Good
+            </span>
+          </div>
+
+          <div class="tip-grid" role="group" aria-label="Tip Percentage Presets">
+            <button type="button" class="tip-chip-btn" data-tip="5">5%</button>
+            <button type="button" class="tip-chip-btn" data-tip="10">10%</button>
+            <button type="button" class="tip-chip-btn active" data-tip="15">15%</button>
+            <button type="button" class="tip-chip-btn" data-tip="20">20%</button>
+            <button type="button" class="tip-chip-btn" data-tip="25">25%</button>
+            
+            <div id="customTipContainer" class="custom-tip-container">
+              <input 
+                type="text" 
+                id="customTipInput" 
+                class="custom-tip-input" 
+                placeholder="Custom" 
+                inputmode="decimal"
+                aria-label="Custom tip percentage"
+              >
+              <span class="custom-tip-suffix" aria-hidden="true">%</span>
+            </div>
+          </div>
+          <div id="tipError" class="error-message" role="alert">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            <span></span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="label-row">
+            <label for="peopleInput" class="field-label">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+              Number of People
+            </label>
+          </div>
+          <div id="stepperContainer" class="stepper-container">
+            <button type="button" id="btnDecrement" class="btn-stepper" aria-label="Decrease people count" disabled>−</button>
+            <input 
+              type="text" 
+              id="peopleInput" 
+              class="people-input tabular-nums" 
+              value="1" 
+              inputmode="numeric"
+              autocomplete="off"
+              aria-describedby="peopleError"
+            >
+            <button type="button" id="btnIncrement" class="btn-stepper" aria-label="Increase people count">+</button>
+          </div>
+          <div id="peopleError" class="error-message" role="alert">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            <span></span>
+          </div>
+        </div>
+
+        <div class="options-row">
+          <label class="toggle-label" for="roundUpToggle">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted)">
+              <path d="m18 9-6-6-6 6"/>
+              <path d="M12 3v14"/>
+              <path d="M5 21h14"/>
+            </svg>
+            <span class="toggle-label-text">Round up per-person total</span>
+          </label>
+          <label class="toggle-switch">
+            <input type="checkbox" id="roundUpToggle">
+            <span class="slider"></span>
+          </label>
+        </div>
+      </section>
+
+      <section class="result-panel" aria-label="Calculated Breakdown" aria-live="polite">
+        <div class="results-content">
+          <div class="stat-block">
+            <div class="stat-info">
+              <span class="stat-title">Tip Amount</span>
+              <span class="stat-subtitle">per person</span>
+            </div>
+            <div class="stat-value-group">
+              <span class="stat-currency dynamic-currency">₹</span>
+              <span id="displayPerPersonTip" class="stat-number tabular-nums">0.00</span>
+            </div>
+          </div>
+
+          <div class="stat-divider" aria-hidden="true"></div>
+
+          <div class="stat-block">
+            <div class="stat-info">
+              <span class="stat-title">Total Amount</span>
+              <span class="stat-subtitle">per person</span>
+            </div>
+            <div class="stat-value-group">
+              <span class="stat-currency dynamic-currency">₹</span>
+              <span id="displayPerPersonTotal" class="stat-number total-accent tabular-nums">0.00</span>
+            </div>
+          </div>
+
+          <div class="sub-stats-grid">
+            <div class="sub-stat-card">
+              <span class="sub-stat-label">Total Tip</span>
+              <span class="sub-stat-amount tabular-nums">
+                <span class="dynamic-currency">₹</span>
+                <span id="displayTotalTip">0.00</span>
+              </span>
+            </div>
+            <div class="sub-stat-card">
+              <span class="sub-stat-label">Bill Total</span>
+              <span class="sub-stat-amount tabular-nums">
+                <span class="dynamic-currency">₹</span>
+                <span id="displayTotalBill">0.00</span>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="result-actions">
+          <button type="button" id="copySummaryBtn" class="btn-primary-action">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+              <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
+              <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+            </svg>
+            Copy Summary
+          </button>
+
+          <button type="button" id="resetBtn" class="btn-ghost-action">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+              <path d="M3 3v5h5"/>
+            </svg>
+            Reset All
+          </button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="toastNotice" class="toast-notice" role="status" aria-live="assertive">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="20 6 9 17 4 12"></polyline>
+    </svg>
+    <span id="toastText">Summary copied to clipboard!</span>
+  </div>
+
+  <script src="js/calculator.js"></script>
+  <script src="js/validator.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

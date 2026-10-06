@@ -1,0 +1,122 @@
+/* Base reset and layout */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  min-height: 100vh;
+  font-family: var(--font-body);
+  color: var(--text-primary);
+  background-color: var(--bg-deep);
+  background-image: 
+    radial-gradient(circle at 18% 12%, rgba(123, 97, 255, 0.22) 0%, transparent 45%),
+    radial-gradient(circle at 82% 88%, rgba(255, 94, 126, 0.18) 0%, transparent 40%),
+    radial-gradient(circle at 50% 50%, rgba(255, 179, 71, 0.08) 0%, transparent 50%);
+  background-attachment: fixed;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: var(--space-4);
+  position: relative;
+  overflow-x: hidden;
+  transition: background-color var(--transition-normal), color var(--transition-normal);
+}
+
+/* Background noise overlay */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  background-image: url("../assets/noise.svg");
+  background-repeat: repeat;
+  opacity: 0.06;
+  mix-blend-mode: overlay;
+  z-index: 100;
+}
+
+/* Background ambient blur */
+.ambient-glow-1,
+.ambient-glow-2 {
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(90px);
+  pointer-events: none;
+  z-index: 0;
+  animation: floatDrift 16s ease-in-out infinite alternate;
+}
+
+.ambient-glow-1 {
+  width: 380px;
+  height: 380px;
+  top: 5%;
+  left: 10%;
+  background: var(--blob-1);
+}
+
+.ambient-glow-2 {
+  width: 320px;
+  height: 320px;
+  bottom: 8%;
+  right: 12%;
+  background: var(--blob-2);
+  animation-delay: -8s;
+}
+
+@keyframes floatDrift {
+  0% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(30px, 20px) scale(1.08); }
+  100% { transform: translate(-25px, -15px) scale(0.95); }
+}
+
+:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+h1, h2, h3, h4, .font-heading {
+  font-family: var(--font-heading);
+  letter-spacing: -0.02em;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+input {
+  font-family: inherit;
+  border: none;
+  outline: none;
+}
+
+/* Equal width digits to avoid jitter */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
